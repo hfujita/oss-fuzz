@@ -16,12 +16,17 @@
 ################################################################################
 
 # Build project
-cmake . -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS" -DBUILD_FUZZERS=ON
+export LDSHARED=lld
+
+cmake . -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+        -DBUILD_FUZZERS=ON -DBUILD_TESTS=OFF -DBUILD_BENCHMARKS=OFF \
+        -DBUILD_EXAMPLES=OFF -DBUILD_STATIC=ON -DBUILD_SHARED=OFF
 make clean
 make -j$(nproc)
 
 # Package seed corpus
-zip -j $OUT/decompress_fuzzer_seed_corpus.zip compat/*.cdata
+zip -j $OUT/decompress_chunk_fuzzer_seed_corpus.zip compat/*.cdata
+zip -j $OUT/decompress_frame_fuzzer_seed_corpus.zip tests/fuzz/corpus/*
 
 # Copy the fuzzer executables, zip-ed corpora, and dictionary files to $OUT
 find . -name '*_fuzzer' -exec cp -v '{}' $OUT ';'

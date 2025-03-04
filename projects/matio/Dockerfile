@@ -15,9 +15,9 @@
 ################################################################################
 
 FROM gcr.io/oss-fuzz-base/base-builder
-RUN apt-get update && apt-get install -y make autoconf automake libhdf5-dev libtool zlib1g-dev
-ENV HDF5_DIR /usr/lib/x86_64-linux-gnu/hdf5/serial
-RUN git clone --depth 1 git://git.code.sf.net/p/matio/matio matio
+RUN apt-get update && apt-get install -y make autoconf automake libtool-bin
+RUN git clone --depth 1 https://github.com/madler/zlib
+RUN git clone --depth 1 https://github.com/tbeu/matio.git matio
+RUN git clone --depth 1 --branch hdf5_1_14 https://github.com/HDFGroup/hdf5.git hdf5
 WORKDIR matio
-ADD https://support.hdfgroup.org/ftp/lib-external/szip/2.1.1/src/szip-2.1.1.tar.gz szip.tar.gz
 COPY build.sh $SRC/

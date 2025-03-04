@@ -8,6 +8,8 @@ permalink: /getting-started/integration-rewards/
 
 # Integration rewards
 
-We encourage you to apply for integration rewards (upto **$20,000**) once your project is
-successfully integrated with OSS-Fuzz. Please see the details in our blog post
-[here](https://opensource.googleblog.com/2017/05/oss-fuzz-five-months-later-and.html).
+We encourage you to apply for integration rewards (up to **$30,000**) once your project
+is successfully integrated with OSS-Fuzz. Please see the full details
+[here](https://bughunters.google.com/about/rules/5097259337383936/oss-fuzz-reward-program-rules).
+
+To submit your application for a reward, please fill out [this form](https://goo.gle/oss-fuzz-submission).

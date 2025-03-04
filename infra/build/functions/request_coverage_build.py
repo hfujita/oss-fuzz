@@ -14,36 +14,42 @@
 #
 ################################################################################
 """Cloud function that requests coverage builds."""
+import base64
 
 import google.auth
 from google.cloud import ndb
 
 import build_and_run_coverage
-from datastore_entities import Project
 import request_build
 
 BASE_PROJECT = 'oss-fuzz-base'
 
 
+def get_build_steps(project_name):
+  """Retrieve build steps."""
+  build_config = request_build.get_empty_config()
+  project_yaml_contents, dockerfile_lines = request_build.get_project_data(
+      project_name)
+  return build_and_run_coverage.get_build_steps(project_name,
+                                                project_yaml_contents,
+                                                dockerfile_lines, build_config)
+
+
 def request_coverage_build(event, context):
   """Entry point for coverage build cloud function."""
-  del event, context  #unused
+  del context  # Unused.
+  if 'data' in event:
+    project_name = base64.b64decode(event['data']).decode('utf-8')
+  else:
+    raise RuntimeError('Project name missing from payload')
 
   with ndb.Client().context():
-    credentials, image_project = google.auth.default()
-    for project in Project.query():
-      project_name = project.name
-      project_yaml_contents = project.project_yaml_contents
-      dockerfile_lines = project.dockerfile_contents.split('\n')
-      # Catching sys.exit() for a project's build steps to avoid it
-      # from interferring with other remaining builds.
-      try:
-        build_steps = build_and_run_coverage.get_build_steps(
-            project_name, project_yaml_contents, dockerfile_lines,
-            image_project, BASE_PROJECT)
-      except SystemExit:
-        continue
-
-      request_build.run_build(project_name, image_project, build_steps,
-                              credentials,
-                              build_and_run_coverage.COVERAGE_BUILD_TAG)
+    credentials, cloud_project = google.auth.default()
+    build_steps = get_build_steps(project_name)
+    if not build_steps:
+      return
+    request_build.run_build(project_name,
+                            build_steps,
+                            credentials,
+                            build_and_run_coverage.COVERAGE_BUILD_TYPE,
+                            cloud_project=cloud_project)

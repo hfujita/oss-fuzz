@@ -68,9 +68,24 @@ for f in ${fuzzers}; do
         cp ../src/fuzzers/${fuzzer_name}.dict ${OUT}/${fuzzer_exe}.dict
     fi
 
-    if [[ -e ../src/fuzzers/${fuzzer_name}-corpus.zip ]]; then
-        cp ../src/fuzzers/${fuzzer_name}-corpus.zip ${OUT}/${fuzzer_exe}_seed_corpus.zip
+    if [[ -e ../src/fuzzers/corpora/${fuzzer_name}-corpus.zip ]]; then
+        cp ../src/fuzzers/corpora/${fuzzer_name}-corpus.zip ${OUT}/${fuzzer_exe}_seed_corpus.zip
     fi
 
     fuzzer_count=$((fuzzer_count + 1))
 done
+
+if [ "${SANITIZER}" = "coverage" ]; then
+  # Normally, base-builder/compile copies sources for use in coverage reports,
+  # but its use of `cp -rL` omits the "zeek -> ." symlink used by #includes,
+  # causing the coverage build to fail.
+  mkdir -p $OUT/$(basename $SRC)
+  cp -r $SRC/zeek $OUT/$(basename $SRC)/zeek
+
+  # Replace the 3rdpary/ghc symlink in the ./build directory with the
+  # actual contents. The symlink otherwise points into the /src directory.
+  if [ -L ${OUT}/$(basename $SRC)/zeek/build/zeek/3rdparty/ghc ]; then
+    rm ${OUT}/$(basename $SRC)/zeek/build/zeek/3rdparty/ghc
+    cp -r $SRC/zeek/auxil/filesystem/include/ghc ${OUT}/$(basename $SRC)/zeek/build/zeek/3rdparty/
+  fi
+fi

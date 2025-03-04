@@ -15,16 +15,21 @@
 #
 ################################################################################
 
+if [ "$SANITIZER" = "coverage" ]
+then
+  touch $OUT/exit
+  exit 0
+fi
+
+source $HOME/.cargo/env
+
 # Case-sensitive names of internal Firefox fuzzing targets. Edit to add more.
 FUZZ_TARGETS=(
+  ContentSecurityPolicyParser
+  FeaturePolicyParser
   # WebRTC
   SdpParser
   StunParser
-  # IPC
-  ContentParentIPC
-  CompositorManagerParentIPC
-  ContentSecurityPolicyParser
-  FeaturePolicyParser
   # Image
   ImageGIF
   ImageICO
@@ -42,9 +47,15 @@ FUZZ_TARGETS=(
 export MOZ_OBJDIR=$WORK/obj-fuzz
 export MOZCONFIG=$SRC/mozconfig.$SANITIZER
 
-# Install dependencies.
+# Without this, a host tool used during Rust part of the build will fail
+export ASAN_OPTIONS="detect_leaks=0"
+
+# Install remaining dependencies.
 export SHELL=/bin/bash
-./mach bootstrap --no-interactive --application-choice browser
+
+rustup default nightly
+
+./mach --no-interactive bootstrap --application-choice browser
 
 # Skip patches for now
 rm tools/fuzzing/libfuzzer/patches/*.patch
@@ -93,9 +104,6 @@ cp $SRC/fuzzdata/dicts/sdp.dict $OUT/SdpParser.dict
 find media/webrtc -iname "*.stun" \
   -type f -exec zip -qu $OUT/StunParser_seed_corpus.zip "{}" \;
 cp $SRC/fuzzdata/dicts/stun.dict $OUT/StunParser.dict
-
-# ContentParentIPC
-cp $SRC/fuzzdata/settings/ipc/libfuzzer.content.blacklist.txt $OUT/firefox
 
 # ImageGIF
 zip -rj $OUT/ImageGIF_seed_corpus.zip $SRC/fuzzdata/samples/gif

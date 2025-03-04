@@ -35,22 +35,25 @@ meson --default-library=static --wrap-mode=nodownload \
   || (cat build/meson-logs/meson-log.txt && false)
 
 # Build the fuzzers.
-ninja -v -j$(nproc) -C $build test/fuzzing/hb-{shape,draw,subset,set}-fuzzer
-mv $build/test/fuzzing/hb-{shape,draw,subset,set}-fuzzer $OUT/
+ninja -v -j$(nproc) -C $build test/fuzzing/hb-{shape,draw,repacker,subset,set}-fuzzer
+mv $build/test/fuzzing/hb-{shape,draw,repacker,subset,set}-fuzzer $OUT/
 
 # Archive and copy to $OUT seed corpus if the build succeeded.
 mkdir all-fonts
 for d in \
-	test/shaping/data/in-house/fonts \
-	test/shaping/data/aots/fonts \
-	test/shaping/data/text-rendering-tests/fonts \
+	test/shape/data/in-house/fonts \
+	test/shape/data/aots/fonts \
+	test/shape/data/text-rendering-tests/fonts \
 	test/api/fonts \
 	test/fuzzing/fonts \
 	perf/fonts \
 	; do
 	cp $d/* all-fonts/
 done
+
 zip $OUT/hb-shape-fuzzer_seed_corpus.zip all-fonts/*
 cp $OUT/hb-shape-fuzzer_seed_corpus.zip $OUT/hb-draw-fuzzer_seed_corpus.zip
 cp $OUT/hb-shape-fuzzer_seed_corpus.zip $OUT/hb-subset-fuzzer_seed_corpus.zip
 zip $OUT/hb-set-fuzzer_seed_corpus.zip ./test/fuzzing/sets/*
+zip $OUT/hb-repacker-fuzzer_seed_corpus.zip ./test/fuzzing/graphs/*
+

@@ -15,7 +15,10 @@
 ################################################################################
 
 
-FROM gcr.io/oss-fuzz-base/base-builder
+FROM gcr.io/oss-fuzz-base/base-builder@sha256:56905c98ae0083d14da0e7371184e694560a74750533f321ac0e9145af0e8d2e
+# ! This project was pinned after a clang bump. Please remove the pin, Try to fix any build warnings and errors, as well as runtime errors
+# see https://github.com/google/oss-fuzz/pull/12365
+
 
 RUN apt-get update && apt-get -y install  \
 	build-essential \
@@ -27,13 +30,10 @@ RUN apt-get update && apt-get -y install  \
     libtool         \
     wget            \
     golang          \
-    python	    \
-    rsync
-
-# Install Bazelisk
-RUN wget -O /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v0.0.8/bazelisk-linux-amd64
-RUN chmod +x /usr/local/bin/bazel
+    rsync           \
+    python3
 
 RUN git clone https://github.com/envoyproxy/envoy.git
 WORKDIR $SRC/envoy/
 COPY build.sh $SRC/
+COPY WORKSPACE $SRC/envoy/
